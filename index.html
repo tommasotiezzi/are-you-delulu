@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Are You Delulu - Traccia i tuoi ragazzi con pro e contro, calcola il punteggio e chatta con un'AI sarcastica">
+  <meta name="theme-color" content="#C8B6DC">
+  
+  <title>Are You Delulu</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💅</text></svg>">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/chat-widget.css">
+</head>
+<body>
+  <!-- App Container -->
+  <div id="app">
+    <!-- Loading State -->
+    <div class="page-loader" style="min-height: 100vh;">
+      <div class="spinner spinner-lg"></div>
+    </div>
+  </div>
+  
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Core Scripts -->
+  <script src="js/supabase.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/landing.js"></script>
+  
+  <!-- Page Scripts -->
+  <script src="js/pages/dashboard.js"></script>
+  <script src="js/pages/add-guy.js"></script>
+  <script src="js/pages/guy-detail.js"></script>
+  <script src="js/pages/settings.js"></script>
+  <script src="js/pages/patterns.js"></script>
+  <script src="js/pages/premium.js"></script>
+  
+  <!-- Chat Widget -->
+  <script src="js/chat-widget.js"></script>
+  
+  <!-- Main App (must be last) -->
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+/* ============================================
+   ARE YOU DELULU - CSS Variables
+   ============================================ */
+
+:root {
+  /* Primary */
+  --color-primary: #C8B6DC;
+  --color-primary-light: #DED4E8;
+  --color-primary-dark: #A894C2;
+  
+  /* Accent */
+  --color-accent: #F7C4AC;
+  --color-accent-light: #FADDD0;
+  --color-accent-dark: #E8A080;
+  
+  /* Neutrals */
+  --color-bg: #FAFAF8;
+  --color-bg-card: #FFFFFF;
+  --color-text: #2D2D2D;
+  --color-text-secondary: #71717A;
+  --color-border: #E8E8E8;
+  --color-border-focus: #C8B6DC;
+  
+  /* Score indicators */
+  --color-positive: #7CB785;
+  --color-neutral: #E5A84B;
+  --color-negative: #D4727A;
+  
+  /* Functional */
+  --color-error: #D4727A;
+  --color-success: #7CB785;
+  --color-warning: #E5A84B;
+  
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  
+  /* Border radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+  
+  /* Z-index layers */
+  --z-dropdown: 100;
+  --z-modal-backdrop: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+}

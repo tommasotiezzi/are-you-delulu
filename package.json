@@ -1,0 +1,9 @@
+{
+  "name": "areyoudelulu",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "stripe": "^14.10.0",
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
