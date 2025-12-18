@@ -264,6 +264,11 @@
   margin-bottom: var(--spacing-xl);
   flex-wrap: wrap;
   gap: var(--spacing-md);
+  overflow: visible;
+}
+
+.dashboard-header .btn {
+  overflow: visible;
 }
 
 .guys-grid {
@@ -417,19 +422,23 @@
   content: attr(data-tooltip);
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   background-color: var(--color-text);
   color: white;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-normal);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-md);
-  width: 220px;
-  text-align: left;
+  width: 260px;
+  text-align: center;
+  line-height: 1.4;
+  white-space: normal;
+  word-wrap: break-word;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.15s;
-  z-index: 9999;
+  z-index: 99999;
   pointer-events: none;
   box-shadow: var(--shadow-lg);
 }
