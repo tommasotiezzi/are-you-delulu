@@ -94,12 +94,12 @@ const Landing = {
               <div class="form-group" id="login-fields">
                 <div class="form-group">
                   <label class="form-label" for="email">Email</label>
-                  <input type="email" id="email" class="form-input" placeholder="ciao@esempio.it" required>
+                  <input type="email" id="email" class="form-input" placeholder="ciao@esempio.it">
                 </div>
                 
                 <div class="form-group">
                   <label class="form-label" for="password">Password</label>
-                  <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                  <input type="password" id="password" class="form-input" placeholder="••••••••">
                 </div>
               </div>
               
