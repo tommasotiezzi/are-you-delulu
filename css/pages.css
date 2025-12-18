@@ -1044,3 +1044,181 @@
   border-radius: var(--radius-md);
   margin: var(--spacing-md);
 }
+
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+   ============================================ */
+
+/* Tablets and below */
+@media (max-width: 768px) {
+  /* App Header */
+  .app-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .app-logo {
+    font-size: var(--font-size-md);
+  }
+  
+  /* App Content */
+  .app-content {
+    padding: var(--spacing-md);
+  }
+  
+  /* Dashboard */
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .dashboard-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .page-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  /* Guy Cards Grid */
+  .guys-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  /* Guy Detail */
+  .guy-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .guy-detail-actions {
+    width: 100%;
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+  
+  .guy-detail-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  /* Score Section */
+  .score-section {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .score-display {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  /* Settings */
+  .settings-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .settings-item .btn {
+    width: 100%;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  /* Landing Page */
+  .landing-left {
+    padding: var(--spacing-lg);
+  }
+  
+  .landing-right {
+    padding: var(--spacing-lg);
+  }
+  
+  .landing-logo {
+    font-size: var(--font-size-xl);
+  }
+  
+  .landing-tagline {
+    font-size: var(--font-size-md);
+  }
+  
+  .landing-features {
+    gap: var(--spacing-md);
+  }
+  
+  .landing-feature-text h4 {
+    font-size: var(--font-size-sm);
+  }
+  
+  .landing-feature-text p {
+    font-size: var(--font-size-xs);
+  }
+  
+  .auth-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  /* App Content */
+  .app-content {
+    padding: var(--spacing-sm);
+  }
+  
+  /* Page Title */
+  .page-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .page-subtitle {
+    font-size: var(--font-size-sm);
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+  
+  .btn-lg {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+  
+  /* Cards */
+  .card-body {
+    padding: var(--spacing-md);
+  }
+  
+  /* Pro/Con Items */
+  .procon-item {
+    flex-wrap: wrap;
+  }
+  
+  .procon-item-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: var(--spacing-xs);
+  }
+  
+  /* Score */
+  .score-percentage {
+    font-size: 2.5rem;
+  }
+  
+  /* Tooltip - position above on mobile */
+  .btn-info-icon::after {
+    width: 200px;
+    font-size: 11px;
+  }
+  
+  /* Patterns Tabs */
+  .patterns-tabs {
+    flex-direction: column;
+  }
+  
+  .patterns-tab {
+    width: 100%;
+    justify-content: center;
+  }
+}
