@@ -470,7 +470,7 @@
   
   .chat-panel {
     width: calc(100vw - 32px);
-    height: calc(100vh - 100px);
+    height: calc(100vh - 200px);
     bottom: 68px;
     right: 0;
   }
