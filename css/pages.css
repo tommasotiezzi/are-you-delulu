@@ -174,19 +174,95 @@
 @media (max-width: 768px) {
   .landing-page {
     flex-direction: column;
-  }
-  
-  .landing-left {
-    padding: var(--spacing-xl);
     min-height: auto;
   }
   
+  .landing-left {
+    padding: var(--spacing-lg);
+    min-height: auto;
+    order: 2; /* Form first on mobile */
+  }
+  
   .landing-right {
-    padding: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    order: 1; /* Form comes first */
+  }
+  
+  .landing-brand {
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .landing-logo {
+    font-size: var(--font-size-xl);
+  }
+  
+  .landing-tagline {
+    font-size: var(--font-size-md);
+  }
+  
+  .landing-features {
+    display: none; /* Hide on mobile */
   }
   
   .landing-social-proof {
     display: none;
+  }
+  
+  /* Auth form on mobile */
+  .auth-container {
+    max-width: 100%;
+  }
+  
+  .auth-header {
+    text-align: center;
+  }
+  
+  .auth-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .auth-subtitle {
+    font-size: var(--font-size-sm);
+  }
+  
+  .auth-toggle {
+    text-align: center;
+  }
+  
+  .auth-legal {
+    text-align: center;
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-left {
+    padding: var(--spacing-md);
+  }
+  
+  .landing-right {
+    padding: var(--spacing-md);
+  }
+  
+  .landing-brand {
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .landing-logo {
+    font-size: var(--font-size-lg);
+  }
+  
+  .landing-tagline {
+    font-size: var(--font-size-sm);
+  }
+  
+  .auth-form {
+    gap: var(--spacing-sm);
+  }
+  
+  .form-group {
+    margin-bottom: var(--spacing-sm);
   }
 }
 
@@ -507,6 +583,24 @@
   color: var(--color-text-secondary);
 }
 
+.guy-detail-dealbreaker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.guy-detail-dealbreaker .dealbreaker-icon {
+  font-size: 2.5rem;
+}
+
+.guy-detail-dealbreaker .dealbreaker-text {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-negative);
+}
+
 /* Pro/Con columns */
 .procon-columns {
   display: grid;
@@ -565,27 +659,67 @@
 .procon-item-text {
   flex: 1;
   font-size: var(--font-size-sm);
+  min-width: 0;
+  word-break: break-word;
 }
 
-.procon-item-weight {
+.procon-item-weight-select {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
-  white-space: nowrap;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  cursor: pointer;
+  max-width: 110px;
+}
+
+.procon-item-weight-select:hover {
+  border-color: var(--color-primary);
+}
+
+.procon-item-weight-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
 }
 
 .procon-item-dealbreaker {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  opacity: 0.3;
+  transition: opacity 0.15s;
+  padding: 2px;
+}
+
+.procon-item-dealbreaker:hover {
+  opacity: 0.7;
+}
+
+.procon-item-dealbreaker.active {
+  opacity: 1;
+}
+
+.procon-item-delete {
+  opacity: 0.5;
+  padding: 4px;
+}
+
+.procon-item-delete:hover {
+  opacity: 1;
   color: var(--color-negative);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
 }
 
 .procon-add {
   padding: var(--spacing-md);
   border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: var(--spacing-sm);
 }
 
 .procon-add-input {
-  width: 100%;
+  flex: 1;
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -595,6 +729,25 @@
 .procon-add-input:focus {
   outline: none;
   border-color: var(--color-primary);
+}
+
+.procon-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.procon-add-btn:hover {
+  background-color: var(--color-primary-dark);
 }
 
 /* ============================================
