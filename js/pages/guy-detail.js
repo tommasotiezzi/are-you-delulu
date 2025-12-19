@@ -295,11 +295,36 @@ const GuyDetail = {
     
     // Handle click on suggestion
     dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
-      item.addEventListener('mousedown', (e) => {
+      item.addEventListener('mousedown', async (e) => {
         e.preventDefault();
-        input.value = item.dataset.text;
+        const text = item.dataset.text;
+        input.value = text;
         this.hideAutocomplete(input);
-        input.focus();
+        
+        // Auto-submit
+        const type = input.dataset.type;
+        const currentList = this.currentProCons.filter(p => p.type === type);
+        const position = currentList.length;
+        
+        input.disabled = true;
+        
+        const { error } = await db
+          .from('pro_cons')
+          .insert({
+            guy_id: guyId,
+            type,
+            text,
+            weight: 3,
+            position
+          });
+        
+        if (error) {
+          Utils.showToast('Errore nel salvataggio', 'error');
+          input.disabled = false;
+          return;
+        }
+        
+        this.render(guyId);
       });
     });
   },
