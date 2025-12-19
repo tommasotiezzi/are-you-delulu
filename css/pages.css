@@ -1281,6 +1281,17 @@
 
 /* Mobile phones */
 @media (max-width: 480px) {
+  /* iOS zoom fix - inputs must be 16px+ to prevent auto-zoom */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+  
   /* Landing Page */
   .landing-left {
     padding: var(--spacing-lg);
