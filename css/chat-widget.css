@@ -1,413 +1,482 @@
 /* ============================================
-   ARE YOU DELULU - Guy Detail Page
+   Floating Chat Widget (Bea)
    ============================================ */
 
-const GuyDetail = {
-  currentGuy: null,
-  currentProCons: [],
-  
-  async render(guyId) {
-    console.log('[GuyDetail] render() called, guyId:', guyId);
-    
-    const renderId = App.getRenderId();
-    
-    App.renderShell(`
-      <div class="page-loader">
-        <div class="spinner"></div>
-      </div>
-    `, { showBack: true });
-    
-    try {
-      // Fetch guy
-      console.log('[GuyDetail] Fetching guy from database...');
-      const { data: guy, error: guyError } = await db
-        .from('guys')
-        .select('*')
-        .eq('id', guyId)
-        .single();
-      
-      // Check if we navigated away
-      if (!App.shouldRender(renderId)) {
-        console.log('[GuyDetail] Stale render, aborting');
-        return;
-      }
-      
-      console.log('[GuyDetail] Guy fetch result:', { guy, guyError });
-      
-      if (guyError || !guy) {
-        Utils.showToast('Ragazzo non trovato', 'error');
-        window.location.hash = '#/dashboard';
-        return;
-      }
-      
-      this.currentGuy = guy;
-      
-      // Fetch pro_cons
-      console.log('[GuyDetail] Fetching pro_cons...');
-      const { data: proCons, error: pcError } = await db
-        .from('pro_cons')
-        .select('*')
-        .eq('guy_id', guyId)
-        .order('position', { ascending: true });
-      
-      console.log('[GuyDetail] Pro_cons fetch result:', { proCons, pcError });
-      
-      // Check again after second fetch
-      if (!App.shouldRender(renderId)) {
-        console.log('[GuyDetail] Stale render, aborting');
-        return;
-      }
-      
-      this.currentProCons = proCons || [];
-      
-      const pros = this.currentProCons.filter(p => p.type === 'pro');
-      const cons = this.currentProCons.filter(p => p.type === 'con');
-      const score = Utils.calculateScore(this.currentProCons);
-      const category = Utils.getScoreCategory(score.percentage, score.hasDealbreaker);
-      const verdict = Utils.getRandomVerdict(category);
-      
-      const content = `
-        <div class="guy-detail-header">
-          <div class="guy-detail-title">
-            <h1 class="page-title">${Utils.escapeHtml(guy.name)}</h1>
-            ${guy.how_met ? `<span class="badge badge-secondary">${Utils.getHowMetLabel(guy.how_met)}</span>` : ''}
-          </div>
-          <div class="guy-detail-actions">
-            <button class="btn btn-secondary" onclick="ChatWidget.openForGuy('${guyId}', '${Utils.escapeHtml(guy.name)}')">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-              Chatta con Bea
-            </button>
-            <button class="btn btn-ghost" onclick="GuyDetail.deleteGuy('${guyId}')" title="Elimina">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-        
-        <div class="guy-detail-score">
-          ${score.hasDealbreaker ? `
-            <div class="guy-detail-dealbreaker">
-              <span class="dealbreaker-icon">⚠️</span>
-              <span class="dealbreaker-text">Dealbreaker</span>
-            </div>
-            <div class="guy-detail-score-verdict">${verdict}</div>
-          ` : `
-            <div class="guy-detail-score-percentage text-${category}">${score.percentage}%</div>
-            <div class="guy-detail-score-verdict">${verdict}</div>
-          `}
-        </div>
-        
-        <div class="procon-columns">
-          <div class="procon-column">
-            <div class="procon-column-header pro">PRO (${pros.length})</div>
-            <div class="procon-list" id="pros-list">
-              ${pros.map(p => this.renderProConItem(p, guyId)).join('')}
-              ${pros.length === 0 ? '<p class="text-secondary text-sm text-center">Nessun pro ancora</p>' : ''}
-            </div>
-            <div class="procon-add">
-              <input type="text" class="procon-add-input" id="add-pro-input" placeholder="Aggiungi un pro..." data-type="pro" data-guy="${guyId}">
-              <button class="procon-add-btn" onclick="GuyDetail.submitInput('add-pro-input')" title="Aggiungi">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          <div class="procon-column">
-            <div class="procon-column-header con">CONTRO (${cons.length})</div>
-            <div class="procon-list" id="cons-list">
-              ${cons.map(c => this.renderProConItem(c, guyId)).join('')}
-              ${cons.length === 0 ? '<p class="text-secondary text-sm text-center">Nessun contro ancora</p>' : ''}
-            </div>
-            <div class="procon-add">
-              <input type="text" class="procon-add-input" id="add-con-input" placeholder="Aggiungi un contro..." data-type="con" data-guy="${guyId}">
-              <button class="procon-add-btn" onclick="GuyDetail.submitInput('add-con-input')" title="Aggiungi">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      App.renderShell(content, { showBack: true });
-      this.bindEvents(guyId, pros, cons);
-      
-    } catch (err) {
-      console.error('[GuyDetail] EXCEPTION:', err);
-      Utils.showToast('Errore: ' + err.message, 'error');
-    }
-  },
-  
-  renderProConItem(item, guyId) {
-    const weightLabel = Utils.getWeightLabel(item.type, item.weight);
-    const weightOptions = item.type === 'pro' 
-      ? [
-          { value: 1, label: 'Meh ok' },
-          { value: 3, label: 'Sì dai' },
-          { value: 5, label: 'QUESTO SÌ' }
-        ]
-      : [
-          { value: 1, label: 'Sopravvivo' },
-          { value: 3, label: 'Non mi piace' },
-          { value: 5, label: 'No proprio no' }
-        ];
-    
-    const dealbreaker = item.type === 'con' ? `
-      <button class="procon-item-dealbreaker ${item.is_dealbreaker ? 'active' : ''}" 
-              onclick="GuyDetail.toggleDealbreaker('${item.id}', '${guyId}', ${!item.is_dealbreaker})"
-              title="${item.is_dealbreaker ? 'Rimuovi dealbreaker' : 'Segna come dealbreaker'}">
-        ⚠️
-      </button>
-    ` : '';
-    
-    return `
-      <div class="procon-item" data-id="${item.id}">
-        <span class="procon-item-text">${Utils.escapeHtml(item.text)}</span>
-        <select class="procon-item-weight-select" onchange="GuyDetail.updateWeight('${item.id}', '${guyId}', this.value)">
-          ${weightOptions.map(opt => `
-            <option value="${opt.value}" ${item.weight === opt.value ? 'selected' : ''}>${opt.label}</option>
-          `).join('')}
-        </select>
-        ${dealbreaker}
-        <button class="btn btn-ghost btn-sm procon-item-delete" onclick="GuyDetail.deleteProCon('${item.id}', '${guyId}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    `;
-  },
-  
-  bindEvents(guyId, pros, cons) {
-    document.querySelectorAll('.procon-add-input').forEach(input => {
-      let debounceTimer = null;
-      
-      // Autocomplete on input
-      input.addEventListener('input', (e) => {
-        clearTimeout(debounceTimer);
-        const text = input.value.trim();
-        
-        if (text.length < 2) {
-          this.hideAutocomplete(input);
-          return;
-        }
-        
-        debounceTimer = setTimeout(() => {
-          this.fetchAutocomplete(input, text, input.dataset.type, guyId);
-        }, 300);
-      });
-      
-      // Submit on Enter
-      input.addEventListener('keypress', async (e) => {
-        if (e.key === 'Enter' && input.value.trim()) {
-          e.preventDefault();
-          this.hideAutocomplete(input);
-          
-          const type = input.dataset.type;
-          const text = input.value.trim();
-          
-          // Get current count for position
-          const currentList = type === 'pro' ? pros : cons;
-          const position = currentList.length;
-          
-          input.disabled = true;
-          
-          const { error } = await db
-            .from('pro_cons')
-            .insert({
-              guy_id: guyId,
-              type,
-              text,
-              weight: 3,
-              position
-            });
-          
-          if (error) {
-            Utils.showToast('Errore nel salvataggio', 'error');
-            input.disabled = false;
-            return;
-          }
-          
-          // Reload page
-          this.render(guyId);
-        }
-      });
-      
-      // Hide autocomplete on blur (with delay for click)
-      input.addEventListener('blur', () => {
-        setTimeout(() => this.hideAutocomplete(input), 200);
-      });
-    });
-  },
-  
-  async fetchAutocomplete(input, searchTerm, type, guyId) {
-    const userId = Auth.getUser()?.id;
-    if (!userId) return;
-    
-    const { data, error } = await db.rpc('get_autocomplete', {
-      user_uuid: userId,
-      search_term: searchTerm,
-      entry_type: type,
-      exclude_guy_id: guyId
-    });
-    
-    if (error || !data || data.length === 0) {
-      this.hideAutocomplete(input);
-      return;
-    }
-    
-    this.showAutocomplete(input, data, guyId);
-  },
-  
-  showAutocomplete(input, suggestions, guyId) {
-    // Remove existing dropdown
-    this.hideAutocomplete(input);
-    
-    const dropdown = document.createElement('div');
-    dropdown.className = 'autocomplete-dropdown';
-    dropdown.innerHTML = suggestions.map(s => `
-      <div class="autocomplete-item" data-text="${Utils.escapeHtml(s.text)}">
-        <span>${Utils.escapeHtml(s.text)}</span>
-        <span class="autocomplete-count">usato ${s.times_used}x</span>
-      </div>
-    `).join('');
-    
-    // Position below input
-    const inputRect = input.getBoundingClientRect();
-    dropdown.style.position = 'absolute';
-    dropdown.style.top = (input.offsetTop + input.offsetHeight) + 'px';
-    dropdown.style.left = input.offsetLeft + 'px';
-    dropdown.style.width = input.offsetWidth + 'px';
-    
-    input.parentElement.style.position = 'relative';
-    input.parentElement.appendChild(dropdown);
-    
-    // Handle click on suggestion
-    dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
-      item.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        input.value = item.dataset.text;
-        this.hideAutocomplete(input);
-        input.focus();
-      });
-    });
-  },
-  
-  hideAutocomplete(input) {
-    const existing = input.parentElement.querySelector('.autocomplete-dropdown');
-    if (existing) existing.remove();
-  },
-  
-  async deleteGuy(guyId) {
-    if (!confirm('Sei sicura di voler eliminare questo ragazzo? Tutti i dati verranno persi.')) {
-      return;
-    }
-    
-    const { error } = await db
-      .from('guys')
-      .delete()
-      .eq('id', guyId);
-    
-    if (error) {
-      Utils.showToast('Errore durante l\'eliminazione', 'error');
-      return;
-    }
-    
-    Utils.showToast('Ragazzo eliminato', 'success');
-    window.location.hash = '#/dashboard';
-  },
-  
-  async deleteProCon(proConId, guyId) {
-    const { error } = await db
-      .from('pro_cons')
-      .delete()
-      .eq('id', proConId);
-    
-    if (error) {
-      Utils.showToast('Errore durante l\'eliminazione', 'error');
-      return;
-    }
-    
-    // Reload page
-    this.render(guyId);
-  },
-  
-  // Submit input when clicking the + button
-  async submitInput(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input || !input.value.trim()) return;
-    
-    const type = input.dataset.type;
-    const guyId = input.dataset.guy;
-    const text = input.value.trim();
-    
-    // Get current count for position
-    const currentList = this.currentProCons.filter(p => p.type === type);
-    const position = currentList.length;
-    
-    input.disabled = true;
-    
-    const { error } = await db
-      .from('pro_cons')
-      .insert({
-        guy_id: guyId,
-        type,
-        text,
-        weight: 3,
-        position
-      });
-    
-    if (error) {
-      Utils.showToast('Errore nel salvataggio', 'error');
-      input.disabled = false;
-      return;
-    }
-    
-    // Reload page
-    this.render(guyId);
-  },
-  
-  // Update weight when dropdown changes
-  async updateWeight(itemId, guyId, newWeight) {
-    const { error } = await db
-      .from('pro_cons')
-      .update({ weight: parseInt(newWeight) })
-      .eq('id', itemId);
-    
-    if (error) {
-      Utils.showToast('Errore nell\'aggiornamento', 'error');
-      return;
-    }
-    
-    // Reload to update score
-    this.render(guyId);
-  },
-  
-  // Toggle dealbreaker status
-  async toggleDealbreaker(itemId, guyId, newValue) {
-    const { error } = await db
-      .from('pro_cons')
-      .update({ is_dealbreaker: newValue })
-      .eq('id', itemId);
-    
-    if (error) {
-      Utils.showToast('Errore nell\'aggiornamento', 'error');
-      return;
-    }
-    
-    // Reload to update score
-    this.render(guyId);
-  }
-};
+#chat-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  font-family: var(--font-family);
+}
 
-window.GuyDetail = GuyDetail;
+/* Floating Action Button */
+.chat-fab {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(200, 182, 220, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.chat-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(200, 182, 220, 0.6);
+}
+
+.chat-fab-icon,
+.chat-fab-close {
+  font-size: 24px;
+  transition: all 0.3s ease;
+}
+
+.chat-fab-close {
+  position: absolute;
+  opacity: 0;
+  transform: rotate(-90deg);
+  color: white;
+  font-size: 20px;
+}
+
+#chat-widget.open .chat-fab-icon {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+#chat-widget.open .chat-fab-close {
+  opacity: 1;
+  transform: rotate(0);
+}
+
+/* Chat Panel */
+.chat-panel {
+  position: absolute;
+  bottom: 72px;
+  right: 0;
+  width: 360px;
+  height: 500px;
+  max-height: calc(100vh - 120px);
+  background-color: var(--color-bg-card);
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.95);
+  transition: all 0.3s ease;
+}
+
+#chat-widget.open .chat-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+/* Panel Header */
+.chat-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-accent-light) 100%);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.chat-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-avatar {
+  font-size: 28px;
+}
+
+.chat-panel-title strong {
+  display: block;
+  font-size: 16px;
+}
+
+.chat-status {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.chat-panel-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.chat-panel-close:hover {
+  color: var(--color-text);
+}
+
+/* Panel Body */
+.chat-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Loading State */
+.chat-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Empty State */
+.chat-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+/* Guy Selector */
+.chat-guy-selector {
+  padding: 16px;
+}
+
+.chat-guy-selector-title {
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.chat-guy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-guy-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chat-guy-item:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.chat-guy-name {
+  font-weight: 500;
+}
+
+.chat-guy-arrow {
+  color: var(--color-text-secondary);
+}
+
+/* Tone Selector */
+.chat-tone-selector {
+  padding: 16px;
+}
+
+/* Chat History */
+.chat-history {
+  padding: 16px;
+}
+
+.chat-history-title {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.chat-new-btn {
+  width: 100%;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-accent-light) 100%);
+  border: 2px dashed var(--color-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  margin-bottom: 16px;
+  transition: all 0.2s;
+}
+
+.chat-new-btn:hover {
+  background: var(--color-primary-light);
+}
+
+.chat-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.chat-history-item:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.chat-history-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-history-tone {
+  font-size: 16px;
+}
+
+.chat-history-date {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.chat-history-preview {
+  font-size: 13px;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.chat-history-count {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.chat-history-empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  padding: 20px;
+}
+
+.chat-back-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary-dark);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.chat-back-btn:hover {
+  text-decoration: underline;
+}
+
+.chat-tone-title {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.chat-tone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-tone-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  position: relative;
+}
+
+.chat-tone-item:hover:not(.locked) {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.chat-tone-item.locked {
+  opacity: 0.6;
+}
+
+.chat-tone-emoji {
+  font-size: 24px;
+}
+
+.chat-tone-item strong {
+  display: block;
+  font-size: 14px;
+}
+
+.chat-tone-item span:not(.chat-tone-emoji):not(.chat-tone-lock) {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.chat-tone-lock {
+  position: absolute;
+  right: 16px;
+  font-size: 14px;
+}
+
+/* Chat Interface */
+.chat-interface {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.chat-current-tone {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-welcome {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 40px 20px;
+}
+
+.chat-welcome p:first-child {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.chat-message {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+  background-color: var(--color-primary);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-message.assistant {
+  align-self: flex-start;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: 4px;
+}
+
+.chat-message.typing {
+  opacity: 0.6;
+}
+
+/* Chat Input */
+.chat-input-area {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-bg-card);
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+  border-color: var(--color-primary);
+}
+
+.chat-send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.chat-send-btn:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  #chat-widget {
+    bottom: 16px;
+    right: 16px;
+  }
+  
+  .chat-panel {
+    width: calc(100vw - 32px);
+    height: calc(100vh - 100px);
+    bottom: 68px;
+    right: 0;
+  }
+  
+  .chat-fab {
+    width: 54px;
+    height: 54px;
+  }
+}
