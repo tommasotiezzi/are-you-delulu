@@ -60,7 +60,7 @@
   bottom: 72px;
   right: 0;
   width: 360px;
-  height: 500px;
+  height: 420px;
   max-height: calc(100vh - 120px);
   background-color: var(--color-bg-card);
   border-radius: 16px;
