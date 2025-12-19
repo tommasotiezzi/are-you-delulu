@@ -89,9 +89,16 @@ const GuyDetail = {
         </div>
         
         <div class="guy-detail-score">
-          <div class="guy-detail-score-percentage text-${category}">${score.percentage}%</div>
-          <div class="guy-detail-score-verdict">${verdict}</div>
-          ${score.hasDealbreaker ? '<div class="badge badge-danger mt-md">⚠️ Dealbreaker presente</div>' : ''}
+          ${score.hasDealbreaker ? `
+            <div class="guy-detail-dealbreaker">
+              <span class="dealbreaker-icon">⚠️</span>
+              <span class="dealbreaker-text">Dealbreaker</span>
+            </div>
+            <div class="guy-detail-score-verdict">${verdict}</div>
+          ` : `
+            <div class="guy-detail-score-percentage text-${category}">${score.percentage}%</div>
+            <div class="guy-detail-score-verdict">${verdict}</div>
+          `}
         </div>
         
         <div class="procon-columns">
@@ -102,7 +109,13 @@ const GuyDetail = {
               ${pros.length === 0 ? '<p class="text-secondary text-sm text-center">Nessun pro ancora</p>' : ''}
             </div>
             <div class="procon-add">
-              <input type="text" class="procon-add-input" id="add-pro-input" placeholder="Aggiungi un pro..." data-type="pro" data-guy="${guyId}">
+              <input type="text" class="procon-add-input" id="add-pro-input" placeholder="Aggiungi un pro..." data-type="pro" data-guy="${guyId}" autocomplete="off">
+              <button class="procon-add-btn" onclick="GuyDetail.submitInput('add-pro-input')" title="Aggiungi">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
             </div>
           </div>
           
@@ -113,7 +126,13 @@ const GuyDetail = {
               ${cons.length === 0 ? '<p class="text-secondary text-sm text-center">Nessun contro ancora</p>' : ''}
             </div>
             <div class="procon-add">
-              <input type="text" class="procon-add-input" id="add-con-input" placeholder="Aggiungi un contro..." data-type="con" data-guy="${guyId}">
+              <input type="text" class="procon-add-input" id="add-con-input" placeholder="Aggiungi un contro..." data-type="con" data-guy="${guyId}" autocomplete="off">
+              <button class="procon-add-btn" onclick="GuyDetail.submitInput('add-con-input')" title="Aggiungi">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -130,12 +149,41 @@ const GuyDetail = {
   
   renderProConItem(item, guyId) {
     const weightLabel = Utils.getWeightLabel(item.type, item.weight);
+    const weightOptions = item.type === 'pro' 
+      ? [
+          { value: 1, label: 'Meh ok' },
+          { value: 3, label: 'Sì dai' },
+          { value: 5, label: 'QUESTO SÌ' }
+        ]
+      : [
+          { value: 1, label: 'Sopravvivo' },
+          { value: 3, label: 'Non mi piace' },
+          { value: 5, label: 'No proprio no' }
+        ];
+    
+    const dealbreaker = item.type === 'con' ? `
+      <button class="procon-item-dealbreaker ${item.is_dealbreaker ? 'active' : ''}" 
+              onclick="GuyDetail.toggleDealbreaker('${item.id}', '${guyId}', ${!item.is_dealbreaker})"
+              title="${item.is_dealbreaker ? 'Rimuovi dealbreaker' : 'Segna come dealbreaker'}">
+        ⚠️
+      </button>
+    ` : '';
+    
     return `
       <div class="procon-item" data-id="${item.id}">
         <span class="procon-item-text">${Utils.escapeHtml(item.text)}</span>
-        <span class="procon-item-weight">${weightLabel}</span>
-        ${item.is_dealbreaker ? '<span class="procon-item-dealbreaker">⚠️</span>' : ''}
-        <button class="btn btn-ghost btn-sm" onclick="GuyDetail.deleteProCon('${item.id}', '${guyId}')">×</button>
+        <select class="procon-item-weight-select" onchange="GuyDetail.updateWeight('${item.id}', '${guyId}', this.value)">
+          ${weightOptions.map(opt => `
+            <option value="${opt.value}" ${item.weight === opt.value ? 'selected' : ''}>${opt.label}</option>
+          `).join('')}
+        </select>
+        ${dealbreaker}
+        <button class="btn btn-ghost btn-sm procon-item-delete" onclick="GuyDetail.deleteProCon('${item.id}', '${guyId}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
     `;
   },
@@ -227,6 +275,7 @@ const GuyDetail = {
     
     const dropdown = document.createElement('div');
     dropdown.className = 'autocomplete-dropdown';
+    dropdown.id = 'autocomplete-dropdown';
     dropdown.innerHTML = suggestions.map(s => `
       <div class="autocomplete-item" data-text="${Utils.escapeHtml(s.text)}">
         <span>${Utils.escapeHtml(s.text)}</span>
@@ -234,15 +283,15 @@ const GuyDetail = {
       </div>
     `).join('');
     
-    // Position below input
+    // Position using fixed positioning (avoids overflow:hidden clipping)
     const inputRect = input.getBoundingClientRect();
-    dropdown.style.position = 'absolute';
-    dropdown.style.top = (input.offsetTop + input.offsetHeight) + 'px';
-    dropdown.style.left = input.offsetLeft + 'px';
-    dropdown.style.width = input.offsetWidth + 'px';
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = (inputRect.bottom + 4) + 'px';
+    dropdown.style.left = inputRect.left + 'px';
+    dropdown.style.width = inputRect.width + 'px';
+    dropdown.style.zIndex = '9999';
     
-    input.parentElement.style.position = 'relative';
-    input.parentElement.appendChild(dropdown);
+    document.body.appendChild(dropdown);
     
     // Handle click on suggestion
     dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
@@ -256,7 +305,7 @@ const GuyDetail = {
   },
   
   hideAutocomplete(input) {
-    const existing = input.parentElement.querySelector('.autocomplete-dropdown');
+    const existing = document.getElementById('autocomplete-dropdown');
     if (existing) existing.remove();
   },
   
@@ -291,6 +340,73 @@ const GuyDetail = {
     }
     
     // Reload page
+    this.render(guyId);
+  },
+  
+  // Submit input when clicking the + button
+  async submitInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input || !input.value.trim()) return;
+    
+    const type = input.dataset.type;
+    const guyId = input.dataset.guy;
+    const text = input.value.trim();
+    
+    // Get current count for position
+    const currentList = this.currentProCons.filter(p => p.type === type);
+    const position = currentList.length;
+    
+    input.disabled = true;
+    
+    const { error } = await db
+      .from('pro_cons')
+      .insert({
+        guy_id: guyId,
+        type,
+        text,
+        weight: 3,
+        position
+      });
+    
+    if (error) {
+      Utils.showToast('Errore nel salvataggio', 'error');
+      input.disabled = false;
+      return;
+    }
+    
+    // Reload page
+    this.render(guyId);
+  },
+  
+  // Update weight when dropdown changes
+  async updateWeight(itemId, guyId, newWeight) {
+    const { error } = await db
+      .from('pro_cons')
+      .update({ weight: parseInt(newWeight) })
+      .eq('id', itemId);
+    
+    if (error) {
+      Utils.showToast('Errore nell\'aggiornamento', 'error');
+      return;
+    }
+    
+    // Reload to update score
+    this.render(guyId);
+  },
+  
+  // Toggle dealbreaker status
+  async toggleDealbreaker(itemId, guyId, newValue) {
+    const { error } = await db
+      .from('pro_cons')
+      .update({ is_dealbreaker: newValue })
+      .eq('id', itemId);
+    
+    if (error) {
+      Utils.showToast('Errore nell\'aggiornamento', 'error');
+      return;
+    }
+    
+    // Reload to update score
     this.render(guyId);
   }
 };
