@@ -1289,6 +1289,8 @@
   border-radius: var(--radius-xl);
   width: 90%;
   max-width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-xl);
   text-align: left;
