@@ -101,6 +101,98 @@ const Utils = {
     const options = this.verdicts[category];
     return options[Math.floor(Math.random() * options.length)];
   },
+
+  // Extended verdict texts for the verdict reveal page (Gen-Z Italian style)
+  verdictTexts: {
+    dealbreaker: [
+      'Bestie, questo è un NO. Non serve la calcolatrice.',
+      'Il tuo sesto senso aveva ragione. Scappa.',
+      'Neanche con tutto il mascara waterproof del mondo.',
+      'L\'universo ti sta urlando di bloccare questo numero.',
+      'Questo è il segno che stavi aspettando: DELETE.',
+      'Anche la tua terapista sarebbe d\'accordo.',
+      'Red flag così grande che si vede dallo spazio.',
+      'Girl, meritavi meglio già ieri.'
+    ],
+    veryNegative: [ // 0-20%
+      'Houston, abbiamo un problema.',
+      'Neanche se Mercurio fosse dritto per sempre.',
+      'Il tuo tempo vale più di così, bestie.',
+      'Non è un no, è un ASSOLUTAMENTE NO.',
+      'Questa è matematica, non opinione. Next.',
+      'Le stelle, i tarocchi e il buon senso dicono tutti la stessa cosa.',
+      'Stai sprecando outfit carini per questo?',
+      'Anche il suo cane meriterebbe di meglio.'
+    ],
+    negative: [ // 21-35%
+      'I numeri non mentono, e questi urlano.',
+      'Forse in un\'altra vita. O forse no.',
+      'L\'asticella era già bassa, e lui fa limbo.',
+      'Non sei delulu, sei realista. E la realtà fa male.',
+      'Anche l\'algoritmo di Tinder direbbe skip.',
+      'Il copione di questa storia l\'hai già visto.',
+      'Le tue amiche avevano ragione (di nuovo).'
+    ],
+    neutral: [ // 36-65%
+      'È un "meh" cosmico. L\'universo è indeciso quanto te.',
+      'Ni. È la risposta. Ni.',
+      'Potresti fare di peggio, potresti fare di meglio.',
+      'La giuria è ancora in deliberazione.',
+      'È il tipo che ordini quando non sai cosa vuoi.',
+      'Plot twist: forse sei tu quella fuori dalla sua lega?',
+      'Questo richiede più dati. O più aperitivi.',
+      'Schrodinger\'s boyfriend: potrebbe essere ok finché non apri la scatola.'
+    ],
+    positive: [ // 66-80%
+      'Ok, questo potrebbe non essere delulu.',
+      'I numeri dicono sì, ma controlla i messaggi.',
+      'Green flag avvistata. Procedi con cautela (ma procedi).',
+      'Forse questa volta la tua BFF si sbaglia?',
+      'L\'universo sembra approvare. Per ora.',
+      'Non male, non male. Teniamo gli occhi aperti.',
+      'Potrebbe essere la volta buona? Stay tuned.'
+    ],
+    veryPositive: [ // 81-100%
+      'OK BESTIE, questo potrebbe essere IT.',
+      'I numeri non mentono e questi sono BELLISSIMI.',
+      'Matrimonio? Sto scherzando. O forse no.',
+      'Bloccalo prima che Mercurio retrogrado faccia danni.',
+      'La matematica dell\'amore ha parlato: VERDE.',
+      'Questa è la main character energy che cercavi.',
+      'Le tue aspettative? Superate. I tuoi standard? Rispettati.',
+      'È il momento di aggiornare la tua bio.'
+    ]
+  },
+
+  getVerdictText(percentage, hasDealbreaker) {
+    let category;
+    if (hasDealbreaker) {
+      category = 'dealbreaker';
+    } else if (percentage <= 20) {
+      category = 'veryNegative';
+    } else if (percentage <= 35) {
+      category = 'negative';
+    } else if (percentage <= 65) {
+      category = 'neutral';
+    } else if (percentage <= 80) {
+      category = 'positive';
+    } else {
+      category = 'veryPositive';
+    }
+
+    const options = this.verdictTexts[category];
+    return options[Math.floor(Math.random() * options.length)];
+  },
+
+  getVerdictEmoji(category, hasDealbreaker) {
+    if (hasDealbreaker) return '🚨';
+    switch (category) {
+      case 'negative': return '🚩';
+      case 'neutral': return '🤔';
+      case 'positive': return '💚';
+      default: return '🔮';
+    }
+  },
   
   // ============================================
   // Weight Labels (Italian)
