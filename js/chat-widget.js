@@ -88,7 +88,7 @@ const ChatWidget = {
       const userId = Auth.getUser()?.id;
       if (userId) {
         await db
-          .from('profiles')
+          .from('users')
           .update({ accepted_bea: true })
           .eq('id', userId);
 
