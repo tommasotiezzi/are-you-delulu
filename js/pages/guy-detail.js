@@ -873,7 +873,6 @@ const GuyDetail = {
               </svg>
               Il calcolo
             </h3>
-            <h3>🎯 Il calcolo</h3>
             <p>Il verdetto bilancia i tuoi pro e contro, ma non tutti pesano allo stesso modo!</p>
           </div>
 
@@ -914,17 +913,9 @@ const GuyDetail = {
               </svg>
               Dealbreaker
             </h3>
-            <h3>⚡ Il peso conta</h3>
-            <p>Ogni pro o contro ha un <strong>peso</strong> che puoi scegliere dal menu a tendina:</p>
-            <ul class="verdict-info-weights">
-              <li><span class="weight-badge weight-low">Leggero</span> Vale poco nel calcolo</li>
-              <li><span class="weight-badge weight-mid">Medio</span> Vale il giusto</li>
-              <li><span class="weight-badge weight-high">Pesante</span> Vale molto di più!</li>
-            </ul>
           </div>
 
           <div class="verdict-info-section">
-            <h3>🚨 Dealbreaker</h3>
             <p>Se segni un contro come <strong>dealbreaker</strong>, il verdetto sarà automaticamente negativo. Alcune cose sono semplicemente inaccettabili!</p>
           </div>
 
