@@ -711,29 +711,36 @@
   border: 2px solid var(--color-primary);
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  z-index: var(--z-dropdown);
-  max-height: 240px;
+  z-index: 9999;
+  max-height: 200px;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
 
+/* Ensure scrolling works on desktop */
+.autocomplete-dropdown:hover {
+  overflow-y: auto;
+}
+
 .autocomplete-dropdown::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .autocomplete-dropdown::-webkit-scrollbar-track {
   background: var(--color-bg);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .autocomplete-dropdown::-webkit-scrollbar-thumb {
-  background: var(--color-primary-light);
-  border-radius: 3px;
+  background: var(--color-primary);
+  border-radius: 4px;
+  min-height: 40px;
 }
 
 .autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-dark);
 }
 
 .autocomplete-item {

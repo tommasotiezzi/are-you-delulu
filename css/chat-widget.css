@@ -529,3 +529,87 @@
     height: 38px;
   }
 }
+
+/* ============================================
+   Bea Consent Modal
+   ============================================ */
+
+.bea-consent-modal {
+  max-width: 440px;
+  width: 90%;
+}
+
+.bea-consent-content {
+  text-align: left;
+}
+
+.bea-consent-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.bea-consent-emoji {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: var(--spacing-sm);
+}
+
+.bea-consent-header h3 {
+  font-size: var(--font-size-xl);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.bea-consent-section {
+  margin-bottom: var(--spacing-md);
+}
+
+.bea-consent-section h4 {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.bea-consent-section p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.bea-consent-section ul {
+  margin: var(--spacing-xs) 0 0 0;
+  padding-left: var(--spacing-lg);
+}
+
+.bea-consent-section li {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-xs);
+}
+
+.bea-consent-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  margin: var(--spacing-lg) 0;
+  cursor: pointer;
+}
+
+.bea-consent-checkbox input {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.bea-consent-checkbox span {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.4;
+}

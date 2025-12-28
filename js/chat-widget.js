@@ -8,11 +8,104 @@ const ChatWidget = {
   currentChatId: null,
   currentTone: null,
   messages: [],
+  hasAcceptedBea: false,
   
   // Initialize widget
-  init() {
+  async init() {
     this.injectHTML();
     this.bindEvents();
+    // Check if user has accepted Bea terms
+    await this.checkBeaConsent();
+  },
+
+  // Check if user has accepted Bea terms
+  async checkBeaConsent() {
+    const profile = Auth.getProfile();
+    this.hasAcceptedBea = profile?.accepted_bea === true;
+  },
+
+  // Show Bea consent modal
+  showBeaConsent(callback) {
+    const modal = document.createElement('div');
+    modal.id = 'bea-consent-modal';
+    modal.className = 'modal-backdrop active';
+    modal.innerHTML = `
+      <div class="modal bea-consent-modal">
+        <div class="modal-body">
+          <div class="bea-consent-content">
+            <div class="bea-consent-header">
+              <span class="bea-consent-emoji">🦋</span>
+              <h3>Prima di chattare con Bea</h3>
+            </div>
+
+            <div class="bea-consent-section">
+              <h4>Come funziona Bea</h4>
+              <p>Bea è un'assistente AI che analizza i tuoi pro e contro per darti un parere sarcastico (ma affettuoso) sulla tua situazione.</p>
+            </div>
+
+            <div class="bea-consent-section">
+              <h4>🔒 I tuoi dati sono protetti</h4>
+              <ul>
+                <li><strong>Non condividiamo mai il tuo nome</strong> con servizi terzi</li>
+                <li><strong>Non condividiamo mai il nome dei ragazzi</strong> - solo i pro/contro anonimi</li>
+                <li>I dati sono inviati a servizi AI terzi (OpenAI) in forma <strong>completamente anonimizzata</strong></li>
+              </ul>
+            </div>
+
+            <div class="bea-consent-section">
+              <h4>⚠️ Disclaimer</h4>
+              <p>Bea è solo per <strong>intrattenimento</strong>. Le sue risposte non sono consigli professionali. Sei responsabile delle tue decisioni.</p>
+            </div>
+
+            <label class="bea-consent-checkbox">
+              <input type="checkbox" id="bea-consent-check">
+              <span>Ho letto e accetto. Capisco che i miei pro/contro (anonimi) saranno elaborati da AI.</span>
+            </label>
+
+            <button class="btn btn-primary btn-block" id="bea-consent-accept" disabled>
+              Accetta e continua
+            </button>
+            <button class="btn btn-ghost btn-block mt-sm" id="bea-consent-cancel">
+              Annulla
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const checkbox = document.getElementById('bea-consent-check');
+    const acceptBtn = document.getElementById('bea-consent-accept');
+    const cancelBtn = document.getElementById('bea-consent-cancel');
+
+    checkbox.addEventListener('change', () => {
+      acceptBtn.disabled = !checkbox.checked;
+    });
+
+    acceptBtn.addEventListener('click', async () => {
+      // Save acceptance to database
+      const userId = Auth.getUser()?.id;
+      if (userId) {
+        await db
+          .from('profiles')
+          .update({ accepted_bea: true })
+          .eq('id', userId);
+
+        // Update local profile
+        const profile = Auth.getProfile();
+        if (profile) profile.accepted_bea = true;
+      }
+
+      this.hasAcceptedBea = true;
+      modal.remove();
+      if (callback) callback();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      modal.remove();
+      this.close();
+    });
   },
   
   // Inject floating button and chat panel HTML
@@ -62,7 +155,20 @@ const ChatWidget = {
   open() {
     this.isOpen = true;
     document.getElementById('chat-widget').classList.add('open');
-    
+
+    // Check for consent first
+    if (!this.hasAcceptedBea) {
+      this.showBeaConsent(() => {
+        // After consent, proceed with opening
+        if (this.currentGuyId) {
+          this.showChat();
+        } else {
+          this.showGuySelector();
+        }
+      });
+      return;
+    }
+
     // If we have a guy selected, show chat. Otherwise show guy selector
     if (this.currentGuyId) {
       this.showChat();
@@ -384,20 +490,38 @@ const ChatWidget = {
     // Add user message to UI immediately
     this.messages.push({ role: 'user', content: text, timestamp: new Date().toISOString() });
     this.renderMessages();
-    
+
     // Show typing indicator
     const messagesEl = document.getElementById('chat-messages');
     messagesEl.innerHTML += `<div class="chat-message assistant typing" id="typing-indicator">...</div>`;
     messagesEl.scrollTop = messagesEl.scrollHeight;
-    
+
     // Disable input while waiting
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send');
     if (input) input.disabled = true;
     if (sendBtn) sendBtn.disabled = true;
-    
+
     try {
-      // Call Bea API
+      // Fetch and decrypt pro_cons for this guy (anonymized - no names sent to AI)
+      const { data: proCons } = await db
+        .from('pro_cons')
+        .select('type, text, weight, is_dealbreaker')
+        .eq('guy_id', this.currentGuyId);
+
+      // Decrypt the pro_cons text
+      let decryptedProCons = [];
+      if (proCons && proCons.length > 0) {
+        await Utils.decryptProCons(proCons);
+        decryptedProCons = proCons.map(p => ({
+          type: p.type,
+          text: p.text,
+          weight: p.weight,
+          is_dealbreaker: p.is_dealbreaker
+        }));
+      }
+
+      // Call Bea API with decrypted, anonymized data (no guy name, no user name)
       const response = await fetch(`${SUPABASE_URL}/functions/v1/chat-bea`, {
         method: 'POST',
         headers: {
@@ -408,7 +532,7 @@ const ChatWidget = {
           chatId: this.currentChatId,
           message: text,
           tone: this.currentTone,
-          guyId: this.currentGuyId,
+          proCons: decryptedProCons, // Send decrypted data directly, anonymized
           userId: Auth.getUser()?.id
         })
       });
