@@ -316,16 +316,20 @@ const GuyDetail = {
         </div>
       `).join('')}
     `;
-    
-    // Position using fixed positioning (avoids overflow:hidden clipping)
-    const inputRect = input.getBoundingClientRect();
-    dropdown.style.position = 'fixed';
-    dropdown.style.top = (inputRect.bottom + 4) + 'px';
-    dropdown.style.left = inputRect.left + 'px';
-    dropdown.style.width = inputRect.width + 'px';
-    dropdown.style.zIndex = '9999';
-    
+
     document.body.appendChild(dropdown);
+
+    // Position the dropdown
+    this.positionAutocomplete(input, dropdown);
+
+    // Reposition on scroll or resize (for mobile keyboard)
+    this.autocompleteRepositionHandler = () => this.positionAutocomplete(input, dropdown);
+    window.addEventListener('scroll', this.autocompleteRepositionHandler, true);
+    window.addEventListener('resize', this.autocompleteRepositionHandler);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this.autocompleteRepositionHandler);
+      window.visualViewport.addEventListener('scroll', this.autocompleteRepositionHandler);
+    }
     
     // Handle click on suggestion
     dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
@@ -374,6 +378,51 @@ const GuyDetail = {
   hideAutocomplete(input) {
     const existing = document.getElementById('autocomplete-dropdown');
     if (existing) existing.remove();
+
+    // Remove event listeners
+    if (this.autocompleteRepositionHandler) {
+      window.removeEventListener('scroll', this.autocompleteRepositionHandler, true);
+      window.removeEventListener('resize', this.autocompleteRepositionHandler);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', this.autocompleteRepositionHandler);
+        window.visualViewport.removeEventListener('scroll', this.autocompleteRepositionHandler);
+      }
+      this.autocompleteRepositionHandler = null;
+    }
+  },
+
+  positionAutocomplete(input, dropdown) {
+    if (!dropdown || !input) return;
+
+    const inputRect = input.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+
+    // Get available viewport height (accounts for mobile keyboard)
+    const viewportHeight = window.visualViewport
+      ? window.visualViewport.height
+      : window.innerHeight;
+
+    // Calculate space below input
+    const spaceBelow = viewportHeight - inputRect.bottom - 16;
+
+    // Fixed position, always below input
+    dropdown.style.position = 'fixed';
+    dropdown.style.left = inputRect.left + 'px';
+    dropdown.style.width = inputRect.width + 'px';
+    dropdown.style.zIndex = '9999';
+
+    if (isMobile) {
+      // On mobile: position just below input, limit height to fit above keyboard
+      const maxHeight = Math.min(180, Math.max(100, spaceBelow - 8));
+      dropdown.style.top = (inputRect.bottom + 4) + 'px';
+      dropdown.style.maxHeight = maxHeight + 'px';
+      dropdown.style.bottom = 'auto';
+    } else {
+      // On desktop: standard positioning
+      dropdown.style.top = (inputRect.bottom + 4) + 'px';
+      dropdown.style.maxHeight = '200px';
+      dropdown.style.bottom = 'auto';
+    }
   },
   
   async deleteGuy(guyId) {
