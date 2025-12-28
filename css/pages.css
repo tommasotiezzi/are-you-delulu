@@ -1508,68 +1508,35 @@
 /* Share Section */
 .verdict-share {
   text-align: center;
-  padding: var(--spacing-lg);
-  background-color: var(--color-bg);
-  border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-lg);
 }
 
-.verdict-share-label {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-md);
-}
-
-.verdict-share-buttons {
-  display: flex;
-  gap: var(--spacing-sm);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.btn-share {
+.btn-share-main {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  justify-content: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all var(--transition-fast);
-  border: 1px solid var(--color-border);
-  background-color: var(--color-bg-card);
-  color: var(--color-text);
-}
-
-.btn-share:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-share-wa {
-  border-color: #25D366;
-  color: #25D366;
-}
-
-.btn-share-wa:hover {
-  background-color: #25D366;
-  color: white;
-}
-
-.btn-share-ig {
-  border-color: #E4405F;
-  color: #E4405F;
-}
-
-.btn-share-ig:hover {
-  background-color: #E4405F;
-  color: white;
-}
-
-.btn-share-copy:hover {
+  border: 2px solid var(--color-primary);
   background-color: var(--color-primary-light);
-  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.btn-share-main:hover {
+  background-color: var(--color-primary);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-share-main:active {
+  transform: translateY(0);
 }
 
 /* ============================================
@@ -1792,13 +1759,5 @@
 
   .scale-pan-count {
     font-size: var(--font-size-lg);
-  }
-
-  .verdict-share-buttons {
-    flex-direction: column;
-  }
-
-  .btn-share {
-    justify-content: center;
   }
 }
