@@ -316,19 +316,10 @@ const GuyDetail = {
         </div>
       `).join('')}
     `;
-    
-    // Position using fixed positioning (avoids overflow:hidden clipping)
-    const inputRect = input.getBoundingClientRect();
-    dropdown.style.position = 'fixed';
-    dropdown.style.top = (inputRect.bottom + 4) + 'px';
-    dropdown.style.left = inputRect.left + 'px';
-    dropdown.style.width = inputRect.width + 'px';
-    dropdown.style.zIndex = '9999';
-    
 
     document.body.appendChild(dropdown);
 
-    // Position the dropdown
+    // Position the dropdown (must be after append so scrollHeight is calculated)
     this.positionAutocomplete(input, dropdown);
 
     // Reposition on scroll or resize (for mobile keyboard)
@@ -411,26 +402,25 @@ const GuyDetail = {
       ? window.visualViewport.height
       : window.innerHeight;
 
-    // Calculate space below input
-    const spaceBelow = viewportHeight - inputRect.bottom - 16;
-
-    // Fixed position, always below input
+    // Fixed position for all cases
     dropdown.style.position = 'fixed';
     dropdown.style.left = inputRect.left + 'px';
     dropdown.style.width = inputRect.width + 'px';
     dropdown.style.zIndex = '9999';
 
     if (isMobile) {
-      // On mobile: position just below input, limit height to fit above keyboard
+      // On mobile: position below input, limit height for keyboard
+      const spaceBelow = viewportHeight - inputRect.bottom - 16;
       const maxHeight = Math.min(180, Math.max(100, spaceBelow - 8));
       dropdown.style.top = (inputRect.bottom + 4) + 'px';
+      dropdown.style.bottom = 'auto';
       dropdown.style.maxHeight = maxHeight + 'px';
-      dropdown.style.bottom = 'auto';
     } else {
-      // On desktop: standard positioning
-      dropdown.style.top = (inputRect.bottom + 4) + 'px';
-      dropdown.style.maxHeight = '200px';
+      // On desktop: position ABOVE input for better visibility when list is long
+      const dropdownHeight = Math.min(240, dropdown.scrollHeight);
+      dropdown.style.top = (inputRect.top - dropdownHeight - 4) + 'px';
       dropdown.style.bottom = 'auto';
+      dropdown.style.maxHeight = '240px';
     }
   },
   
