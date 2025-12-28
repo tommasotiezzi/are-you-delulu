@@ -325,7 +325,20 @@ const GuyDetail = {
     dropdown.style.width = inputRect.width + 'px';
     dropdown.style.zIndex = '9999';
     
+
     document.body.appendChild(dropdown);
+
+    // Position the dropdown
+    this.positionAutocomplete(input, dropdown);
+
+    // Reposition on scroll or resize (for mobile keyboard)
+    this.autocompleteRepositionHandler = () => this.positionAutocomplete(input, dropdown);
+    window.addEventListener('scroll', this.autocompleteRepositionHandler, true);
+    window.addEventListener('resize', this.autocompleteRepositionHandler);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this.autocompleteRepositionHandler);
+      window.visualViewport.addEventListener('scroll', this.autocompleteRepositionHandler);
+    }
     
     // Handle click on suggestion
     dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
@@ -374,6 +387,51 @@ const GuyDetail = {
   hideAutocomplete(input) {
     const existing = document.getElementById('autocomplete-dropdown');
     if (existing) existing.remove();
+
+    // Remove event listeners
+    if (this.autocompleteRepositionHandler) {
+      window.removeEventListener('scroll', this.autocompleteRepositionHandler, true);
+      window.removeEventListener('resize', this.autocompleteRepositionHandler);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', this.autocompleteRepositionHandler);
+        window.visualViewport.removeEventListener('scroll', this.autocompleteRepositionHandler);
+      }
+      this.autocompleteRepositionHandler = null;
+    }
+  },
+
+  positionAutocomplete(input, dropdown) {
+    if (!dropdown || !input) return;
+
+    const inputRect = input.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+
+    // Get available viewport height (accounts for mobile keyboard)
+    const viewportHeight = window.visualViewport
+      ? window.visualViewport.height
+      : window.innerHeight;
+
+    // Calculate space below input
+    const spaceBelow = viewportHeight - inputRect.bottom - 16;
+
+    // Fixed position, always below input
+    dropdown.style.position = 'fixed';
+    dropdown.style.left = inputRect.left + 'px';
+    dropdown.style.width = inputRect.width + 'px';
+    dropdown.style.zIndex = '9999';
+
+    if (isMobile) {
+      // On mobile: position just below input, limit height to fit above keyboard
+      const maxHeight = Math.min(180, Math.max(100, spaceBelow - 8));
+      dropdown.style.top = (inputRect.bottom + 4) + 'px';
+      dropdown.style.maxHeight = maxHeight + 'px';
+      dropdown.style.bottom = 'auto';
+    } else {
+      // On desktop: standard positioning
+      dropdown.style.top = (inputRect.bottom + 4) + 'px';
+      dropdown.style.maxHeight = '200px';
+      dropdown.style.bottom = 'auto';
+    }
   },
   
   async deleteGuy(guyId) {
@@ -809,6 +867,10 @@ const GuyDetail = {
             <line x1="12" y1="16" x2="12" y2="12"></line>
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
+        <button class="verdict-info-close" onclick="GuyDetail.closeVerdictInfo()">✕</button>
+
+        <div class="verdict-info-header">
+          <span class="verdict-info-emoji">⚖️</span>
           <h2>Come funziona il verdetto?</h2>
         </div>
 
@@ -821,6 +883,7 @@ const GuyDetail = {
               </svg>
               Il calcolo
             </h3>
+            <h3>🎯 Il calcolo</h3>
             <p>Il verdetto bilancia i tuoi pro e contro, ma non tutti pesano allo stesso modo!</p>
           </div>
 
@@ -861,6 +924,17 @@ const GuyDetail = {
               </svg>
               Dealbreaker
             </h3>
+            <h3>⚡ Il peso conta</h3>
+            <p>Ogni pro o contro ha un <strong>peso</strong> che puoi scegliere dal menu a tendina:</p>
+            <ul class="verdict-info-weights">
+              <li><span class="weight-badge weight-low">Leggero</span> Vale poco nel calcolo</li>
+              <li><span class="weight-badge weight-mid">Medio</span> Vale il giusto</li>
+              <li><span class="weight-badge weight-high">Pesante</span> Vale molto di più!</li>
+            </ul>
+          </div>
+
+          <div class="verdict-info-section">
+            <h3>🚨 Dealbreaker</h3>
             <p>Se segni un contro come <strong>dealbreaker</strong>, il verdetto sarà automaticamente negativo. Alcune cose sono semplicemente inaccettabili!</p>
           </div>
 
@@ -870,6 +944,7 @@ const GuyDetail = {
               <line x1="12" y1="16" x2="12" y2="12"></line>
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
+            <span>💡</span>
             <span>Consiglio: scegli bene il peso di ogni pro e contro per un verdetto più accurato!</span>
           </div>
         </div>
