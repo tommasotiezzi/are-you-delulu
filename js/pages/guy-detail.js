@@ -59,7 +59,12 @@ const GuyDetail = {
       }
       
       this.currentProCons = proCons || [];
-      
+
+      // Decrypt pro_cons text
+      if (this.currentProCons.length > 0) {
+        await Utils.decryptProCons(this.currentProCons);
+      }
+
       const pros = this.currentProCons.filter(p => p.type === 'pro');
       const cons = this.currentProCons.filter(p => p.type === 'con');
       const score = Utils.calculateScore(this.currentProCons);
@@ -212,34 +217,42 @@ const GuyDetail = {
         if (e.key === 'Enter' && input.value.trim()) {
           e.preventDefault();
           this.hideAutocomplete(input);
-          
+
           const type = input.dataset.type;
           const text = input.value.trim();
-          
+
           // Get current count for position
           const currentList = type === 'pro' ? pros : cons;
           const position = currentList.length;
-          
+
           input.disabled = true;
-          
-          const { error } = await db
-            .from('pro_cons')
-            .insert({
-              guy_id: guyId,
-              type,
-              text,
-              weight: 3,
-              position
-            });
-          
-          if (error) {
-            Utils.showToast('Errore nel salvataggio', 'error');
+
+          try {
+            // Encrypt the text before storing
+            const encryptedText = await Utils.encryptText(text);
+
+            const { error } = await db
+              .from('pro_cons')
+              .insert({
+                guy_id: guyId,
+                type,
+                text: encryptedText,
+                weight: 3,
+                position
+              });
+
+            if (error) {
+              Utils.showToast('Errore nel salvataggio', 'error');
+              input.disabled = false;
+              return;
+            }
+
+            // Reload page
+            this.render(guyId);
+          } catch (err) {
+            Utils.showToast('Errore nella crittografia', 'error');
             input.disabled = false;
-            return;
           }
-          
-          // Reload page
-          this.render(guyId);
         }
       });
       
@@ -253,20 +266,38 @@ const GuyDetail = {
   async fetchAutocomplete(input, searchTerm, type, guyId) {
     const userId = Auth.getUser()?.id;
     if (!userId) return;
-    
+
     const { data, error } = await db.rpc('get_autocomplete', {
       user_uuid: userId,
       search_term: searchTerm,
       entry_type: type,
       exclude_guy_id: guyId
     });
-    
+
     if (error || !data || data.length === 0) {
       this.hideAutocomplete(input);
       return;
     }
-    
-    this.showAutocomplete(input, data, guyId);
+
+    // Decrypt the autocomplete suggestions
+    if (data.length > 0) {
+      const texts = data.map(s => s.text);
+      const decryptedTexts = await Utils.decryptTexts(texts);
+      data.forEach((s, i) => {
+        s.text = decryptedTexts[i];
+      });
+
+      // Filter suggestions that match the search term (after decryption)
+      const lowerSearch = searchTerm.toLowerCase();
+      const filtered = data.filter(s => s.text.toLowerCase().includes(lowerSearch));
+
+      if (filtered.length === 0) {
+        this.hideAutocomplete(input);
+        return;
+      }
+
+      this.showAutocomplete(input, filtered, guyId);
+    }
   },
   
   showAutocomplete(input, suggestions, guyId) {
@@ -300,31 +331,39 @@ const GuyDetail = {
         const text = item.dataset.text;
         input.value = text;
         this.hideAutocomplete(input);
-        
+
         // Auto-submit
         const type = input.dataset.type;
         const currentList = this.currentProCons.filter(p => p.type === type);
         const position = currentList.length;
-        
+
         input.disabled = true;
-        
-        const { error } = await db
-          .from('pro_cons')
-          .insert({
-            guy_id: guyId,
-            type,
-            text,
-            weight: 3,
-            position
-          });
-        
-        if (error) {
-          Utils.showToast('Errore nel salvataggio', 'error');
+
+        try {
+          // Encrypt the text before storing
+          const encryptedText = await Utils.encryptText(text);
+
+          const { error } = await db
+            .from('pro_cons')
+            .insert({
+              guy_id: guyId,
+              type,
+              text: encryptedText,
+              weight: 3,
+              position
+            });
+
+          if (error) {
+            Utils.showToast('Errore nel salvataggio', 'error');
+            input.disabled = false;
+            return;
+          }
+
+          this.render(guyId);
+        } catch (err) {
+          Utils.showToast('Errore nella crittografia', 'error');
           input.disabled = false;
-          return;
         }
-        
-        this.render(guyId);
       });
     });
   },
@@ -372,35 +411,43 @@ const GuyDetail = {
   async submitInput(inputId) {
     const input = document.getElementById(inputId);
     if (!input || !input.value.trim()) return;
-    
+
     const type = input.dataset.type;
     const guyId = input.dataset.guy;
     const text = input.value.trim();
-    
+
     // Get current count for position
     const currentList = this.currentProCons.filter(p => p.type === type);
     const position = currentList.length;
-    
+
     input.disabled = true;
-    
-    const { error } = await db
-      .from('pro_cons')
-      .insert({
-        guy_id: guyId,
-        type,
-        text,
-        weight: 3,
-        position
-      });
-    
-    if (error) {
-      Utils.showToast('Errore nel salvataggio', 'error');
+
+    try {
+      // Encrypt the text before storing
+      const encryptedText = await Utils.encryptText(text);
+
+      const { error } = await db
+        .from('pro_cons')
+        .insert({
+          guy_id: guyId,
+          type,
+          text: encryptedText,
+          weight: 3,
+          position
+        });
+
+      if (error) {
+        Utils.showToast('Errore nel salvataggio', 'error');
+        input.disabled = false;
+        return;
+      }
+
+      // Reload page
+      this.render(guyId);
+    } catch (err) {
+      Utils.showToast('Errore nella crittografia', 'error');
       input.disabled = false;
-      return;
     }
-    
-    // Reload page
-    this.render(guyId);
   },
   
   // Update weight when dropdown changes

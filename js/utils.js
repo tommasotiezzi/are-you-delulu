@@ -450,13 +450,105 @@ const Utils = {
   // ============================================
   // Generate UUID
   // ============================================
-  
+
   generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       const r = Math.random() * 16 | 0;
       const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
+  },
+
+  // ============================================
+  // Encryption/Decryption Helpers
+  // ============================================
+
+  // Encrypt a single text string
+  async encryptText(text) {
+    try {
+      const response = await fetch('/api/crypto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'encrypt', text })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return data.encrypted;
+    } catch (err) {
+      console.error('[Utils] encryptText error:', err);
+      throw err;
+    }
+  },
+
+  // Decrypt a single text string
+  async decryptText(encryptedText) {
+    try {
+      const response = await fetch('/api/crypto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'decrypt', text: encryptedText })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return data.decrypted;
+    } catch (err) {
+      console.error('[Utils] decryptText error:', err);
+      // Return original text on error (handles unencrypted legacy data)
+      return encryptedText;
+    }
+  },
+
+  // Batch encrypt multiple texts
+  async encryptTexts(texts) {
+    try {
+      const response = await fetch('/api/crypto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'encrypt', texts })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return data.encrypted;
+    } catch (err) {
+      console.error('[Utils] encryptTexts error:', err);
+      throw err;
+    }
+  },
+
+  // Batch decrypt multiple texts (more efficient for lists)
+  async decryptTexts(encryptedTexts) {
+    try {
+      const response = await fetch('/api/crypto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'decrypt', texts: encryptedTexts })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return data.decrypted;
+    } catch (err) {
+      console.error('[Utils] decryptTexts error:', err);
+      // Return original texts on error (handles unencrypted legacy data)
+      return encryptedTexts;
+    }
+  },
+
+  // Decrypt an array of pro_cons objects (in-place mutation for efficiency)
+  async decryptProCons(proCons) {
+    if (!proCons || proCons.length === 0) return proCons;
+
+    const texts = proCons.map(pc => pc.text);
+    const decrypted = await this.decryptTexts(texts);
+
+    proCons.forEach((pc, i) => {
+      pc.text = decrypted[i];
+    });
+
+    return proCons;
   }
 };
 

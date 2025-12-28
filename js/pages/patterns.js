@@ -30,13 +30,22 @@ const Patterns = {
         user_uuid: userId,
         pattern_type: 'pro'
       });
-      
+
       // Check if we navigated away
       if (!App.shouldRender(renderId)) {
         console.log('[Patterns] Stale render, aborting');
         return;
       }
-      
+
+      // Decrypt pro patterns text
+      if (proPatterns && proPatterns.length > 0) {
+        const proTexts = proPatterns.map(p => p.text);
+        const decryptedProTexts = await Utils.decryptTexts(proTexts);
+        proPatterns.forEach((p, i) => {
+          p.text = decryptedProTexts[i];
+        });
+      }
+
       // Fetch con patterns (only if allowed)
       let conPatterns = [];
       if (canViewRedFlags) {
@@ -45,6 +54,15 @@ const Patterns = {
           pattern_type: 'con'
         });
         conPatterns = conData || [];
+
+        // Decrypt con patterns text
+        if (conPatterns.length > 0) {
+          const conTexts = conPatterns.map(p => p.text);
+          const decryptedConTexts = await Utils.decryptTexts(conTexts);
+          conPatterns.forEach((p, i) => {
+            p.text = decryptedConTexts[i];
+          });
+        }
       }
       
       const content = `
