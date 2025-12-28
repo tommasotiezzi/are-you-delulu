@@ -704,38 +704,21 @@ const GuyDetail = {
       </svg>`;
     }
 
+    // Map category names from Utils.getScoreCategory: 'positive', 'neutral', 'negative'
     const icons = {
-      bruh: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D4727A" stroke-width="2">
+      negative: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D4727A" stroke-width="2">
         <circle cx="12" cy="12" r="10"></circle>
         <path d="M16 16s-1.5-2-4-2-4 2-4 2"></path>
         <line x1="9" y1="9" x2="9.01" y2="9"></line>
         <line x1="15" y1="9" x2="15.01" y2="9"></line>
       </svg>`,
-      ew: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E5A84B" stroke-width="2">
+      neutral: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E5A84B" stroke-width="2">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="8" y1="15" x2="16" y2="15"></line>
         <line x1="9" y1="9" x2="9.01" y2="9"></line>
         <line x1="15" y1="9" x2="15.01" y2="9"></line>
       </svg>`,
-      meh: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E5A84B" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="8" y1="15" x2="16" y2="15"></line>
-        <line x1="9" y1="9" x2="9.01" y2="9"></line>
-        <line x1="15" y1="9" x2="15.01" y2="9"></line>
-      </svg>`,
-      ok: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7CB785" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-        <line x1="9" y1="9" x2="9.01" y2="9"></line>
-        <line x1="15" y1="9" x2="15.01" y2="9"></line>
-      </svg>`,
-      good: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7CB785" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-        <line x1="9" y1="9" x2="9.01" y2="9"></line>
-        <line x1="15" y1="9" x2="15.01" y2="9"></line>
-      </svg>`,
-      slay: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7CB785" stroke-width="2">
+      positive: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7CB785" stroke-width="2">
         <circle cx="12" cy="12" r="10"></circle>
         <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
         <line x1="9" y1="9" x2="9.01" y2="9"></line>
@@ -743,7 +726,7 @@ const GuyDetail = {
       </svg>`
     };
 
-    return icons[category] || icons.meh;
+    return icons[category] || icons.neutral;
   },
 
   showVerdictDetails() {
@@ -857,10 +840,6 @@ const GuyDetail = {
             <line x1="12" y1="16" x2="12" y2="12"></line>
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
-        <button class="verdict-info-close" onclick="GuyDetail.closeVerdictInfo()">✕</button>
-
-        <div class="verdict-info-header">
-          <span class="verdict-info-emoji">⚖️</span>
           <h2>Come funziona il verdetto?</h2>
         </div>
 
@@ -873,7 +852,6 @@ const GuyDetail = {
               </svg>
               Il calcolo
             </h3>
-            <h3>🎯 Il calcolo</h3>
             <p>Il verdetto bilancia i tuoi pro e contro, ma non tutti pesano allo stesso modo!</p>
           </div>
 
@@ -914,17 +892,6 @@ const GuyDetail = {
               </svg>
               Dealbreaker
             </h3>
-            <h3>⚡ Il peso conta</h3>
-            <p>Ogni pro o contro ha un <strong>peso</strong> che puoi scegliere dal menu a tendina:</p>
-            <ul class="verdict-info-weights">
-              <li><span class="weight-badge weight-low">Leggero</span> Vale poco nel calcolo</li>
-              <li><span class="weight-badge weight-mid">Medio</span> Vale il giusto</li>
-              <li><span class="weight-badge weight-high">Pesante</span> Vale molto di più!</li>
-            </ul>
-          </div>
-
-          <div class="verdict-info-section">
-            <h3>🚨 Dealbreaker</h3>
             <p>Se segni un contro come <strong>dealbreaker</strong>, il verdetto sarà automaticamente negativo. Alcune cose sono semplicemente inaccettabili!</p>
           </div>
 
@@ -934,7 +901,6 @@ const GuyDetail = {
               <line x1="12" y1="16" x2="12" y2="12"></line>
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
-            <span>💡</span>
             <span>Consiglio: scegli bene il peso di ogni pro e contro per un verdetto più accurato!</span>
           </div>
         </div>
