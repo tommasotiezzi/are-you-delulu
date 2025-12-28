@@ -630,37 +630,213 @@ const GuyDetail = {
   },
 
   async shareVerdict(platform, guyName, percentage, hasDealbreaker) {
-    const verdict = hasDealbreaker ? 'DEALBREAKER ⚠️' : `${percentage}%`;
-    const emoji = hasDealbreaker ? '🚩' : (percentage > 65 ? '💚' : percentage > 35 ? '🤔' : '🚩');
-    const text = `${emoji} Il mio verdetto su ${guyName}: ${verdict}`;
-    const url = 'https://areyoudelulu.app';
+    // Generate shareable image card
+    const imageBlob = await this.generateShareCard(guyName, percentage, hasDealbreaker);
 
     const shareData = {
       title: 'Are You Delulu?',
-      text: text,
-      url: url
+      text: `Quanto è una red flag ${guyName}? Scoprilo su areyoudelulu.app`,
+      files: [new File([imageBlob], 'verdetto.png', { type: 'image/png' })]
     };
 
-    // Use native Web Share API if available
+    // Check if sharing files is supported
     if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
       try {
         await navigator.share(shareData);
         Utils.showToast('Condiviso!', 'success');
       } catch (err) {
-        // User cancelled or share failed
         if (err.name !== 'AbortError') {
           console.error('Share failed:', err);
-          this.fallbackShare(text, url);
+          // Fallback: try sharing without file
+          this.fallbackShare(guyName, percentage, hasDealbreaker);
         }
       }
     } else {
-      // Fallback for browsers without Web Share API
-      this.fallbackShare(text, url);
+      // Fallback for browsers without file sharing support
+      this.fallbackShare(guyName, percentage, hasDealbreaker);
     }
   },
 
-  fallbackShare(text, url) {
-    const fullText = `${text}\n\nScopri se sei delulu anche tu!\n${url}`;
+  async generateShareCard(guyName, percentage, hasDealbreaker) {
+    const score = Utils.calculateScore(this.currentProCons);
+
+    // Red flag percentage is inverted (100 - our score)
+    const redFlagPercent = hasDealbreaker ? 100 : (100 - percentage);
+
+    // Canvas setup
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = 600;
+    const height = 800;
+    const dpr = 2; // High DPI for crisp images
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
+
+    // Background gradient (lavender to peach)
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#E8E0F0');
+    gradient.addColorStop(1, '#FCE8E0');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    // Card background
+    ctx.fillStyle = '#FFFFFF';
+    this.roundRect(ctx, 30, 30, width - 60, height - 60, 24);
+    ctx.fill();
+    ctx.shadowColor = 'rgba(0,0,0,0.1)';
+    ctx.shadowBlur = 20;
+
+    // Reset shadow for text
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+
+    // Header question
+    ctx.fillStyle = '#6B5B7A';
+    ctx.font = '600 22px Inter, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Quanto è una red flag da 1 a 100?', width / 2, 90);
+
+    // Big red flag percentage
+    const percentColor = redFlagPercent >= 70 ? '#D4727A' : redFlagPercent >= 40 ? '#E5A84B' : '#7CB785';
+    ctx.fillStyle = percentColor;
+    ctx.font = 'bold 120px Inter, system-ui, sans-serif';
+    ctx.fillText(`${redFlagPercent}`, width / 2, 220);
+
+    // "red flag" label
+    ctx.fillStyle = '#6B5B7A';
+    ctx.font = '500 24px Inter, system-ui, sans-serif';
+    ctx.fillText(hasDealbreaker ? '🚨 DEALBREAKER 🚨' : '🚩 red flag', width / 2, 260);
+
+    // Divider line
+    ctx.strokeStyle = '#E8E0F0';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(60, 300);
+    ctx.lineTo(width - 60, 300);
+    ctx.stroke();
+
+    // Bilancia (Scale) section
+    const scaleY = 420;
+    const tiltDegrees = Math.max(-20, Math.min(20, (score.proTotal - score.conTotal) * 2));
+
+    ctx.save();
+    ctx.translate(width / 2, scaleY);
+    ctx.rotate(tiltDegrees * Math.PI / 180);
+
+    // Scale beam
+    const beamGradient = ctx.createLinearGradient(-180, 0, 180, 0);
+    beamGradient.addColorStop(0, '#7CB785');
+    beamGradient.addColorStop(0.5, '#D4D4D4');
+    beamGradient.addColorStop(1, '#D4727A');
+    ctx.fillStyle = beamGradient;
+    ctx.fillRect(-180, -4, 360, 8);
+
+    // Pro pan (left)
+    ctx.fillStyle = 'rgba(124, 183, 133, 0.2)';
+    ctx.strokeStyle = '#7CB785';
+    ctx.lineWidth = 3;
+    this.roundRect(ctx, -180, -50, 100, 70, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#7CB785';
+    ctx.font = 'bold 14px Inter, system-ui, sans-serif';
+    ctx.fillText('PRO', -130, -25);
+    ctx.font = 'bold 28px Inter, system-ui, sans-serif';
+    ctx.fillText(score.proCount.toString(), -130, 10);
+
+    // Con pan (right)
+    ctx.fillStyle = 'rgba(212, 114, 122, 0.2)';
+    ctx.strokeStyle = '#D4727A';
+    ctx.lineWidth = 3;
+    this.roundRect(ctx, 80, -50, 100, 70, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#D4727A';
+    ctx.font = 'bold 14px Inter, system-ui, sans-serif';
+    ctx.fillText('CONTRO', 130, -25);
+    ctx.font = 'bold 28px Inter, system-ui, sans-serif';
+    ctx.fillText(score.conCount.toString(), 130, 10);
+
+    // Fulcrum
+    ctx.fillStyle = '#C8B6DC';
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // Weight info
+    ctx.fillStyle = '#6B5B7A';
+    ctx.font = '500 18px Inter, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`💚 ${score.proTotal} punti  vs  🚩 ${score.conTotal} punti`, width / 2, 520);
+
+    // Heavy pros/cons indicator
+    const heavyPros = this.currentProCons.filter(p => p.type === 'pro' && p.weight === 5).length;
+    const heavyCons = this.currentProCons.filter(p => p.type === 'con' && p.weight === 5).length;
+
+    if (heavyPros > 0 || heavyCons > 0) {
+      ctx.font = '400 16px Inter, system-ui, sans-serif';
+      ctx.fillStyle = '#8B7B9A';
+      let heavyText = [];
+      if (heavyPros > 0) heavyText.push(`${heavyPros} super pro`);
+      if (heavyCons > 0) heavyText.push(`${heavyCons} red flag pesanti`);
+      ctx.fillText(heavyText.join(' • '), width / 2, 555);
+    }
+
+    // Divider
+    ctx.strokeStyle = '#E8E0F0';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(60, 590);
+    ctx.lineTo(width - 60, 590);
+    ctx.stroke();
+
+    // CTA section
+    ctx.fillStyle = '#2D2D2D';
+    ctx.font = '600 20px Inter, system-ui, sans-serif';
+    ctx.fillText('Vuoi scoprire quanto sei delulu?', width / 2, 640);
+
+    // App name/URL with lavender background
+    ctx.fillStyle = '#C8B6DC';
+    this.roundRect(ctx, 150, 665, width - 300, 50, 25);
+    ctx.fill();
+
+    ctx.fillStyle = '#4A3F5C';
+    ctx.font = 'bold 22px Inter, system-ui, sans-serif';
+    ctx.fillText('areyoudelulu.app', width / 2, 698);
+
+    // Footer emoji
+    ctx.font = '32px Arial';
+    ctx.fillText('💅', width / 2, 755);
+
+    // Convert to blob
+    return new Promise((resolve) => {
+      canvas.toBlob(resolve, 'image/png');
+    });
+  },
+
+  roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  },
+
+  fallbackShare(guyName, percentage, hasDealbreaker) {
+    const redFlagPercent = hasDealbreaker ? 100 : (100 - percentage);
+    const fullText = `🚩 ${guyName} è una red flag al ${redFlagPercent}%!\n\nVuoi scoprire quanto sei delulu?\n👉 areyoudelulu.app`;
     navigator.clipboard.writeText(fullText).then(() => {
       Utils.showToast('Copiato negli appunti!', 'success');
     }).catch(() => {
