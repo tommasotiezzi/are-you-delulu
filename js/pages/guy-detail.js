@@ -91,6 +91,7 @@ const GuyDetail = {
               <span class="verdict-cta-emoji">🔮</span>
               <span>Rivela il verdetto su ${Utils.escapeHtml(guy.name)}</span>
             </button>
+            <button class="verdict-info-btn" onclick="GuyDetail.showVerdictInfo()" title="Come funziona?">?</button>
           </div>
         ` : `
           <div class="verdict-cta verdict-cta-disabled">
@@ -98,6 +99,7 @@ const GuyDetail = {
               <span>✨</span>
               <span>Aggiungi almeno un pro o contro per sbloccare il verdetto</span>
             </div>
+            <button class="verdict-info-btn" onclick="GuyDetail.showVerdictInfo()" title="Come funziona?">?</button>
           </div>
         `}
         
@@ -204,7 +206,7 @@ const GuyDetail = {
         
         debounceTimer = setTimeout(() => {
           this.fetchAutocomplete(input, text, input.dataset.type, guyId);
-        }, 300);
+        }, 200);
       });
       
       // Submit on Enter
@@ -298,16 +300,22 @@ const GuyDetail = {
   showAutocomplete(input, suggestions, guyId) {
     // Remove existing dropdown
     this.hideAutocomplete(input);
-    
+
     const dropdown = document.createElement('div');
     dropdown.className = 'autocomplete-dropdown';
     dropdown.id = 'autocomplete-dropdown';
-    dropdown.innerHTML = suggestions.map(s => `
-      <div class="autocomplete-item" data-text="${Utils.escapeHtml(s.text)}">
-        <span>${Utils.escapeHtml(s.text)}</span>
-        <span class="autocomplete-count">usato ${s.times_used}x</span>
+    dropdown.innerHTML = `
+      <div class="autocomplete-hint">
+        <span>💡</span>
+        <span>Riusa i tuoi attributi preferiti</span>
       </div>
-    `).join('');
+      ${suggestions.map(s => `
+        <div class="autocomplete-item" data-text="${Utils.escapeHtml(s.text)}">
+          <span>${Utils.escapeHtml(s.text)}</span>
+          <span class="autocomplete-count">usato ${s.times_used}x</span>
+        </div>
+      `).join('')}
+    `;
     
     // Position using fixed positioning (avoids overflow:hidden clipping)
     const inputRect = input.getBoundingClientRect();
@@ -623,6 +631,63 @@ const GuyDetail = {
 
   closeVerdict() {
     const modal = document.getElementById('verdict-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      setTimeout(() => modal.remove(), 300);
+    }
+  },
+
+  showVerdictInfo() {
+    const modal = document.createElement('div');
+    modal.id = 'verdict-info-modal';
+    modal.className = 'modal-backdrop active';
+    modal.onclick = (e) => {
+      if (e.target === modal) this.closeVerdictInfo();
+    };
+
+    modal.innerHTML = `
+      <div class="verdict-info-modal">
+        <button class="verdict-info-close" onclick="GuyDetail.closeVerdictInfo()">✕</button>
+
+        <div class="verdict-info-header">
+          <span class="verdict-info-emoji">⚖️</span>
+          <h2>Come funziona il verdetto?</h2>
+        </div>
+
+        <div class="verdict-info-content">
+          <div class="verdict-info-section">
+            <h3>🎯 Il calcolo</h3>
+            <p>Il verdetto bilancia i tuoi pro e contro, ma non tutti pesano allo stesso modo!</p>
+          </div>
+
+          <div class="verdict-info-section">
+            <h3>⚡ Il peso conta</h3>
+            <p>Ogni pro o contro ha un <strong>peso</strong> che puoi scegliere dal menu a tendina:</p>
+            <ul class="verdict-info-weights">
+              <li><span class="weight-badge weight-low">Leggero</span> Vale poco nel calcolo</li>
+              <li><span class="weight-badge weight-mid">Medio</span> Vale il giusto</li>
+              <li><span class="weight-badge weight-high">Pesante</span> Vale molto di più!</li>
+            </ul>
+          </div>
+
+          <div class="verdict-info-section">
+            <h3>🚨 Dealbreaker</h3>
+            <p>Se segni un contro come <strong>dealbreaker</strong>, il verdetto sarà automaticamente negativo. Alcune cose sono semplicemente inaccettabili!</p>
+          </div>
+
+          <div class="verdict-info-tip">
+            <span>💡</span>
+            <span>Consiglio: scegli bene il peso di ogni pro e contro per un verdetto più accurato!</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+  },
+
+  closeVerdictInfo() {
+    const modal = document.getElementById('verdict-info-modal');
     if (modal) {
       modal.classList.remove('active');
       setTimeout(() => modal.remove(), 300);
