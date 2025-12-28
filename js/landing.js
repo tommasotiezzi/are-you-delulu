@@ -141,7 +141,7 @@ const Landing = {
             </p>
             
             <p class="auth-legal">
-              Continuando, accetti i nostri <a href="#/terms">Termini di Servizio</a> e la <a href="#/privacy">Privacy Policy</a>
+              Registrandoti, accetti i <a href="/terms.html" target="_blank">Termini di Servizio</a> e la <a href="/privacy.html" target="_blank">Privacy Policy</a>
             </p>
           </div>
           
