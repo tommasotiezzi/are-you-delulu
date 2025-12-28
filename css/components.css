@@ -711,6 +711,9 @@
   border: 2px solid var(--color-primary);
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: var(--z-dropdown);
+  max-height: 240px;
+  overflow-y: auto;
   z-index: 9999;
   max-height: 200px;
   overflow-y: auto;
@@ -719,6 +722,8 @@
   overscroll-behavior: contain;
 }
 
+.autocomplete-dropdown::-webkit-scrollbar {
+  width: 6px;
 /* Ensure scrolling works on desktop */
 .autocomplete-dropdown:hover {
   overflow-y: auto;
@@ -730,6 +735,16 @@
 
 .autocomplete-dropdown::-webkit-scrollbar-track {
   background: var(--color-bg);
+  border-radius: 3px;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-thumb {
+  background: var(--color-primary-light);
+  border-radius: 3px;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
   border-radius: 4px;
 }
 
