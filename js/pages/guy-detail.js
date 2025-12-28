@@ -316,17 +316,21 @@ const GuyDetail = {
         </div>
       `).join('')}
     `;
-    
-    // Position using fixed positioning (avoids overflow:hidden clipping)
-    const inputRect = input.getBoundingClientRect();
-    dropdown.style.position = 'fixed';
-    dropdown.style.top = (inputRect.bottom + 4) + 'px';
-    dropdown.style.left = inputRect.left + 'px';
-    dropdown.style.width = inputRect.width + 'px';
-    dropdown.style.zIndex = '9999';
-    
+
     document.body.appendChild(dropdown);
-    
+
+    // Position the dropdown
+    this.positionAutocomplete(input, dropdown);
+
+    // Reposition on scroll or resize (for mobile keyboard)
+    this.autocompleteRepositionHandler = () => this.positionAutocomplete(input, dropdown);
+    window.addEventListener('scroll', this.autocompleteRepositionHandler, true);
+    window.addEventListener('resize', this.autocompleteRepositionHandler);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this.autocompleteRepositionHandler);
+      window.visualViewport.addEventListener('scroll', this.autocompleteRepositionHandler);
+    }
+
     // Handle click on suggestion
     dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
       item.addEventListener('mousedown', async (e) => {
@@ -370,10 +374,54 @@ const GuyDetail = {
       });
     });
   },
-  
+
+  positionAutocomplete(input, dropdown) {
+    if (!dropdown || !input) return;
+
+    const inputRect = input.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+
+    // Get available viewport height (accounts for mobile keyboard)
+    const viewportHeight = window.visualViewport
+      ? window.visualViewport.height
+      : window.innerHeight;
+
+    // Fixed position for all cases
+    dropdown.style.position = 'fixed';
+    dropdown.style.left = inputRect.left + 'px';
+    dropdown.style.width = inputRect.width + 'px';
+    dropdown.style.zIndex = '9999';
+
+    if (isMobile) {
+      // On mobile: position below input, limit height for keyboard
+      const spaceBelow = viewportHeight - inputRect.bottom - 16;
+      const maxHeight = Math.min(180, Math.max(100, spaceBelow - 8));
+      dropdown.style.top = (inputRect.bottom + 4) + 'px';
+      dropdown.style.bottom = 'auto';
+      dropdown.style.maxHeight = maxHeight + 'px';
+    } else {
+      // On desktop: position ABOVE input for better visibility
+      const dropdownHeight = Math.min(240, dropdown.scrollHeight);
+      dropdown.style.top = (inputRect.top - dropdownHeight - 4) + 'px';
+      dropdown.style.bottom = 'auto';
+      dropdown.style.maxHeight = '240px';
+    }
+  },
+
   hideAutocomplete(input) {
     const existing = document.getElementById('autocomplete-dropdown');
     if (existing) existing.remove();
+
+    // Remove event listeners
+    if (this.autocompleteRepositionHandler) {
+      window.removeEventListener('scroll', this.autocompleteRepositionHandler, true);
+      window.removeEventListener('resize', this.autocompleteRepositionHandler);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', this.autocompleteRepositionHandler);
+        window.visualViewport.removeEventListener('scroll', this.autocompleteRepositionHandler);
+      }
+      this.autocompleteRepositionHandler = null;
+    }
   },
   
   async deleteGuy(guyId) {
