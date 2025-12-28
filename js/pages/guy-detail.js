@@ -300,16 +300,22 @@ const GuyDetail = {
   showAutocomplete(input, suggestions, guyId) {
     // Remove existing dropdown
     this.hideAutocomplete(input);
-    
+
     const dropdown = document.createElement('div');
     dropdown.className = 'autocomplete-dropdown';
     dropdown.id = 'autocomplete-dropdown';
-    dropdown.innerHTML = suggestions.map(s => `
-      <div class="autocomplete-item" data-text="${Utils.escapeHtml(s.text)}">
-        <span>${Utils.escapeHtml(s.text)}</span>
-        <span class="autocomplete-count">usato ${s.times_used}x</span>
+    dropdown.innerHTML = `
+      <div class="autocomplete-hint">
+        <span>💡</span>
+        <span>Riusa i tuoi attributi preferiti</span>
       </div>
-    `).join('');
+      ${suggestions.map(s => `
+        <div class="autocomplete-item" data-text="${Utils.escapeHtml(s.text)}">
+          <span>${Utils.escapeHtml(s.text)}</span>
+          <span class="autocomplete-count">usato ${s.times_used}x</span>
+        </div>
+      `).join('')}
+    `;
     
     // Position using fixed positioning (avoids overflow:hidden clipping)
     const inputRect = input.getBoundingClientRect();
